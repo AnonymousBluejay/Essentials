@@ -136,6 +136,7 @@ public class AsyncTeleport implements IAsyncTeleport {
 
     @Override
     public void nowUnsafe(Location loc, TeleportCause cause, CompletableFuture<Boolean> future) {
+        teleportOwner.getBase().eject();
         final CompletableFuture<Boolean> paperFuture = PaperLib.teleportAsync(teleportOwner.getBase(), loc, cause);
         paperFuture.thenAccept(future::complete);
         paperFuture.exceptionally(future::completeExceptionally);
@@ -197,6 +198,7 @@ public class AsyncTeleport implements IAsyncTeleport {
                     } else {
                         try {
                             //There's a chance the safer location is outside the loaded chunk so still teleport async here.
+                            teleportee.getBase().eject();
                             PaperLib.teleportAsync(teleportee.getBase(), LocationUtil.getSafeDestination(ess, teleportee, loc), cause);
                         } catch (final Exception e) {
                             future.completeExceptionally(e);
@@ -210,12 +212,14 @@ public class AsyncTeleport implements IAsyncTeleport {
             } else {
                 if (ess.getSettings().isForceDisableTeleportSafety()) {
                     //The chunk we're teleporting to is 100% going to be loaded here, no need to teleport async.
+                    teleportee.getBase().eject();
                     teleportee.getBase().teleport(loc, cause);
                 } else {
                     if (ess.getSettings().isTeleportToCenterLocation()) {
                         loc = LocationUtil.getRoundedDestination(loc);
                     }
                     //There's a *small* chance the rounded destination produces a location outside the loaded chunk so still teleport async here.
+                    teleportee.getBase().eject();
                     PaperLib.teleportAsync(teleportee.getBase(), loc, cause);
                 }
             }
